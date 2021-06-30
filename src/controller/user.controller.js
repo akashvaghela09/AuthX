@@ -9,6 +9,7 @@ router.get("/", async (req, res) => {
     return res.status(200).json({data: user})
 })
 
+
 // Get Single User
 router.get("/:id", async (req, res) => {
     try {
@@ -19,22 +20,35 @@ router.get("/:id", async (req, res) => {
     }
 })
 
+
 // Post User
 router.post("/", async (req, res) => {
-    try {
-        bcrypt.hash(req.body.password, 10, function(err, hash) {
-            let userbody = {
-                "name": req.body.name,
-                "email": req.body.email,
-                "password": hash
+    const user = await UserUpload.find().lean().exec();
+    flag = true;
+    user.map((el) => {
+        if(req.body.email === el.mail){
+            flag = false
+        }
+
+        if(flag === true){
+            try {
+                bcrypt.hash(req.body.password, 10, function(err, hash) {
+                    let userbody = {
+                        "name": req.body.name,
+                        "email": req.body.email,
+                        "password": hash
+                    }
+                    const user = UserUpload.create(userbody);
+                    return res.status(201).json({data: userbody})
+                });
+            } catch (err) {
+                return res.status(500).json({message: err.message})
             }
-            const user = UserUpload.create(userbody);
-            return res.status(201).json({data: userbody})
-        });
-    } catch (err) {
-        return res.status(500).json({message: err.message})
-    }
+        }
+    })
+
 })
+
 
 // Login method
 router.post("/login", async (req, res) => {
@@ -64,11 +78,20 @@ router.post("/login", async (req, res) => {
     }
 })
 
+
 // Update User
 router.patch("/:id", async (req, res) => {
     try {
-        const user = await UserUpload.findByIdAndUpdate(req.params.id, req.body, { new: true}).lean().exec()
-        return res.status(200).json({data: user})
+        if(req.body.password){
+            bcrypt.hash(req.body.password, 10, function(err, hash) {
+                req.body.password = hash
+                const user = UserUpload.findByIdAndUpdate(req.params.id, req.body, { new: true}).lean().exec()
+                return res.status(201).json({data: req.body})
+            });
+        } else {
+            const user = await UserUpload.findByIdAndUpdate(req.params.id, req.body, { new: true}).lean().exec()
+            return res.status(200).json({data: user})
+        }
     } catch (err) {
         return res.status(500).json({message: err.message})
     }
