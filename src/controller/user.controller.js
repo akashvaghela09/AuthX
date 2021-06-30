@@ -26,27 +26,27 @@ router.post("/", async (req, res) => {
     const user = await UserUpload.find().lean().exec();
     flag = true;
     user.map((el) => {
-        if(req.body.email === el.mail){
+        if(req.body.email === el.email){
             flag = false
-        }
-
-        if(flag === true){
-            try {
-                bcrypt.hash(req.body.password, 10, function(err, hash) {
-                    let userbody = {
-                        "name": req.body.name,
-                        "email": req.body.email,
-                        "password": hash
-                    }
-                    const user = UserUpload.create(userbody);
-                    return res.status(201).json({data: userbody})
-                });
-            } catch (err) {
-                return res.status(500).json({message: err.message})
-            }
+            return res.status(500).json({message: "User Already Exist"})
         }
     })
 
+    if(flag === true){
+        try {
+            bcrypt.hash(req.body.password, 10, function(err, hash) {
+                let userbody = {
+                    "name": req.body.name,
+                    "email": req.body.email,
+                    "password": hash
+                }
+                const user = UserUpload.create(userbody);
+                return res.status(201).json({data: userbody})
+            });
+        } catch (err) {
+            return res.status(500).json({message: err.message})
+        }
+    }
 })
 
 
