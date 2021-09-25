@@ -1,7 +1,7 @@
 const express = require("express")
 const router = express.Router()
 const {UserUpload} = require("../model/user.model")
-const bcrypt = require("bcrypt")
+const bcrypt = require("bcryptjs")
 
 // Get User
 router.get("/", async (req, res) => {
